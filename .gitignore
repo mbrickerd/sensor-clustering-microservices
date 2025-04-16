@@ -1,0 +1,5 @@
+data/
+.venv
+.envrc
+.DS_Store
+uv.lock
