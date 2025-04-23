@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sensor-predictor"
+version = "0.1.0"
+description = "ML predictor service for sensor readings"
+requires-python = ">=3.10"
+dependencies = [
+    "sensor-domain @ file:///app/domain",
+    "asyncpg>=0.30.0",
+    "loguru>=0.7.3",
+    "mlflow>=2.21.3",
+    "numpy>=2.2.4", 
+    "prometheus-client>=0.16.0",
+    "psycopg2-binary>=2.9.10",
+    "scikit-learn>=1.6.1",
+    "tortoise-orm>=0.25.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["predictor*"]
+exclude = []
