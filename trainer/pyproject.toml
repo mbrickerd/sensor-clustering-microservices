@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sensor-trainer"
+version = "0.1.0"
+description = "ML training service for sensor failure detection system"
+requires-python = ">=3.10"
+dependencies = [
+    "sensor-domain @ file:///app/domain",
+    "aiohttp>=3.11.16",
+    "loguru>=0.7.3",
+    "asyncpg>=0.30.0",
+    "celery>=5.2.7",
+    "redis>=4.5.4",
+    "fastapi>=0.115.2",
+    "uvicorn>=0.31.0",
+    "mlflow>=2.21.3",
+    "numpy==1.26.4",
+    "polars>=1.27.1",
+    "scikit-learn>=1.6.1",
+    "scipy>=1.15.2",
+    "pyarrow<14.0.0",
+    "shapely<2.0.0",
+    "db-dtypes<1.2.0",
+    "tortoise-orm>=0.25.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["trainer*"]
+exclude = []
