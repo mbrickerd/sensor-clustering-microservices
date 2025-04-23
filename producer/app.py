@@ -1,8 +1,8 @@
 import time
+
 from loguru import logger
 
-from .producer import SensorDataProducer
-
+from producer.services.producer import SensorDataProducer
 
 if __name__ == "__main__":
     # Wait for Kafka to be ready

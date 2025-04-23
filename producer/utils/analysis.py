@@ -27,20 +27,20 @@ def calculate_sensor_statistics(df: pl.DataFrame) -> dict[str, dict[str, float]]
         ).row(0)
 
         sensor_stats[col] = {
-            "mean": float(stats["mean"]),
-            "std": float(stats["std"]),
-            "min": float(stats["min"]),
-            "max": float(stats["max"]),
+            "mean": float(stats[0]),
+            "std": float(stats[1]),
+            "min": float(stats[2]),
+            "max": float(stats[3]),
         }
 
     return sensor_stats
 
 
-def analyze_failure_patterns(
+def analyse_failure_patterns(
     df: pl.DataFrame,
 ) -> dict[float, dict[str, dict[str, float]]]:
     """
-    Analyze patterns for each failure type in the dataset.
+    Analyse patterns for each failure type in the dataset.
 
     Args:
         df (pl.DataFrame): Polars DataFrame containing sensor data with failure labels
@@ -72,12 +72,12 @@ def analyze_failure_patterns(
             ).row(0)
 
             failure_patterns[label][col] = {
-                "mean": float(stats["mean"]),
-                "std": float(stats["std"]),
+                "mean": float(stats[0]),
+                "std": float(stats[1]),
             }
 
     logger.info(
-        f"Analyzed {labeled_data.height} labeled data points with {len(labels)} failure types"
+        f"Analysed {labeled_data.height} labeled data points with {len(labels)} failure types"
     )
     return failure_patterns
 
@@ -124,14 +124,14 @@ def analyse_dataset(
     num_sensors: int = 20,
 ) -> tuple[dict[str, dict[str, float]], dict[float, dict[str, dict[str, float]]]]:
     """
-    Load and analyze the sensor dataset to extract patterns and statistics.
+    Load and analyse the sensor dataset to extract patterns and statistics.
 
     Args:
         data_file (str): Path to the CSV data file
         num_sensors (int): Number of sensors expected in the data
 
     Returns:
-        tuple: (sensor_stats, failure_patterns) containing the analyzed data
+        tuple: (sensor_stats, failure_patterns) containing the analysed data
     """
     try:
         # Load dataset using Polars
@@ -140,12 +140,12 @@ def analyse_dataset(
 
         # Calculate sensor statistics and failure patterns
         sensor_stats = calculate_sensor_statistics(df)
-        failure_patterns = analyze_failure_patterns(df)
+        failure_patterns = analyse_failure_patterns(df)
 
         return sensor_stats, failure_patterns
 
     except Exception as err:
-        logger.error(f"Error analyzing dataset: {err}")
+        logger.error(f"Error sing dataset: {err}")
         return get_default_sensor_statistics(num_sensors), get_default_failure_patterns(
             num_sensors
         )
