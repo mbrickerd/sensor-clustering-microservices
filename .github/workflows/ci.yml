@@ -1,10 +1,6 @@
 name: Sensor Clustering CI
 
 on:
-  push:
-    branches:
-      - 'feature/**'
-
   pull_request:
     branches:
       - main
@@ -34,4 +30,4 @@ jobs:
         run: uv run ruff check .
 
       - name: Run type checking
-        run: uv run mypy consumer/ producer/
+        run: uv run mypy consumer/ domain/predictor/ producer/ trainer/
