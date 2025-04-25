@@ -1,3 +1,20 @@
+"""
+Training DAG for the Sensor Failure Detection System.
+
+This module defines the Airflow DAG that orchestrates the machine learning
+training workflow for sensor failure detection. The DAG performs health checks
+on required services, triggers the training process, and monitors its completion.
+
+The DAG runs on an hourly schedule and includes the following tasks:
+1. MLflow health check
+2. Trainer API health check
+3. Training job triggering
+4. Training job monitoring
+
+The DAG is configured with retry mechanisms to handle temporary service outages
+and uses HTTP operators to communicate with the trainer microservice.
+"""
+
 import json
 from datetime import timedelta
 
@@ -6,8 +23,7 @@ import pendulum
 from airflow import DAG  # type: ignore
 from airflow.operators.python import PythonOperator
 from airflow.providers.http.operators.http import HttpOperator
-from dags.utils.healthcheck import mlflow_healthcheck, trainer_healthcheck
-from dags.utils.status import check_status
+from dags.utils import check_status, mlflow_healthcheck, trainer_healthcheck
 
 default_args = {
     "owner": "airflow",

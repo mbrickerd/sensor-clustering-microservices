@@ -1,3 +1,11 @@
+"""
+Job status monitoring utilities for the Airflow DAGs.
+
+This module provides functions to check the status of training jobs
+and determine when they have completed or failed. It uses the Airflow
+context to retrieve job IDs and connection information.
+"""
+
 import requests
 
 from airflow.hooks.base import BaseHook
@@ -5,28 +13,33 @@ from airflow.hooks.base import BaseHook
 
 def check_status(**context) -> bool:
     """
-    Custom function to check training status with more robust error handling
+    Check the status of a training job with robust error handling.
+
+    This function retrieves the job ID from the previous task using XCom,
+    then queries the trainer API for the job status. It handles various
+    error conditions that might occur during the status check.
+
+    Args:
+        **context: The Airflow task context containing task instance (ti)
+            and other runtime information
+
+    Returns:
+        bool: `True` if the job has completed or failed, `False` otherwise
+            or if an error occurred during the status check
     """
-    # Retrieve the connection
     conn = BaseHook.get_connection("trainer_api")
     base_url = conn.host
 
-    # Get the job ID from the previous task
     job_id = context["ti"].xcom_pull(task_ids="trigger_training")["job_id"]
 
     try:
-        # Construct the full URL
         status_url = f"{base_url.rstrip('/')}/api/train/{job_id}"
-
-        # Make the request
         response = requests.get(status_url, timeout=10)
 
-        # Check if the request was successful
         if response.status_code == 200:
             status_data = response.json()
             print(f"Job status: {status_data}")
 
-            # Return True if job is completed or failed
             return status_data["status"] in ["completed", "failed"]
 
         else:
