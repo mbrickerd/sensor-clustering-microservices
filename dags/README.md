@@ -52,10 +52,10 @@ with DAG(
 
 The DAG consists of four main tasks:
 
-1. **check_mlflow_health**: Verifies that the MLflow tracking server is operational
-2. **check_trainer_health**: Ensures the `sensor-trainer` API is available
-3. **trigger_training**: Initiates the training job via an HTTP request to the trainer API
-4. **monitor_training**: Polls the training job status until completion or failure
+1. **`check_mlflow_health`**: Verifies that the MLflow tracking server is operational
+2. **`check_trainer_health`**: Ensures the `sensor-trainer` API is available
+3. **`trigger_training`**: Initiates the training job via an HTTP request to the trainer API
+4. **`monitor_training`**: Polls the training job status until completion or failure
 
 These tasks run in sequence, with each task depending on the successful completion of the previous task.
 
