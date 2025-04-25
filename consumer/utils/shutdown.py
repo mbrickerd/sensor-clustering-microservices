@@ -26,12 +26,12 @@ async def shutdown(
     all pending tasks, and stops the event loop.
 
     Args:
-        signal (Signals): The signal that triggered the shutdown
-        loop (AbstractEventLoop): The asyncio event loop
-        consumer (SensorDataConsumer): The Kafka consumer to stop
+        signal (`Signals`): The signal that triggered the shutdown
+        loop (`AbstractEventLoop`): The asyncio event loop
+        consumer (`SensorDataConsumer`): The Kafka consumer to stop
 
     Returns:
-        None
+        `None`
     """
     logger.info(f"Received exit signal {signal.name}...")
     await consumer.stop()
@@ -55,11 +55,11 @@ async def setup_signal_handlers(
     of the application when it's terminated.
 
     Args:
-        loop (AbstractEventLoop): The asyncio event loop
-        consumer (SensorDataConsumer): The Kafka consumer to be stopped on shutdown
+        loop (`AbstractEventLoop`): The asyncio event loop
+        consumer (`SensorDataConsumer`): The Kafka consumer to be stopped on shutdown
 
     Returns:
-        None
+        `None`
     """
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(

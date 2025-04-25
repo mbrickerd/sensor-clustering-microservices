@@ -22,10 +22,10 @@ def mlflow_healthcheck() -> bool:
     a 5-second interval between retries.
 
     Returns:
-        bool: `True` if the MLflow server is healthy
+        `bool`: `True` if the MLflow server is healthy
 
     Raises:
-        Exception: If all health check attempts fail
+        `Exception`: If all health check attempts fail
     """
     mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://mlflow:5000")
     logger.info(f"Checking MLflow health at: {mlflow_uri}")
@@ -60,10 +60,10 @@ def trainer_healthcheck() -> bool:
     interval between retries.
 
     Returns:
-        bool: `True` if the trainer API is healthy
+        `bool`: `True` if the trainer API is healthy
 
     Raises:
-        Exception: If all health check attempts fail
+        `Exception`: If all health check attempts fail
     """
     trainer_uri = os.environ.get("AIRFLOW_CONN_TRAINER_API", "http://trainer:8000")
     if trainer_uri.startswith("http:"):

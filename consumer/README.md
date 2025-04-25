@@ -90,7 +90,7 @@ Key aspects:
 - Uses Python 3.10 slim image for both build and runtime stages
 - Installs build dependencies only in the first stage
 - Utilises `uv` for fast and cached dependency installation
-- Includes the domain module as a dependency
+- Includes the `domain` module as a dependency
 - Sets the proper `PYTHONPATH` for module imports
 - Final image contains only runtime dependencies
 

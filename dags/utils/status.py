@@ -24,7 +24,7 @@ def check_status(**context) -> bool:
             and other runtime information
 
     Returns:
-        bool: `True` if the job has completed or failed, `False` otherwise
+        `bool`: `True` if the job has completed or failed, `False` otherwise
             or if an error occurred during the status check
     """
     conn = BaseHook.get_connection("trainer_api")

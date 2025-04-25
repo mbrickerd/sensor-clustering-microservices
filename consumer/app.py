@@ -29,7 +29,7 @@ async def main():
     4. Sets up signal handlers for graceful shutdown
 
     Returns:
-        None
+        `None`
     """
     logger.info("Waiting for services to be ready...")
     time.sleep(10)

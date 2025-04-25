@@ -30,7 +30,7 @@ class Config:
         are not present. All configuration values are logged at startup.
 
         Returns:
-            None
+            `None`
         """
         self.kafka_bootstrap_servers = os.environ.get(
             "KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"
@@ -57,7 +57,7 @@ class Config:
         INFO level for transparency and debugging purposes.
 
         Returns:
-            None
+            `None`
         """
         logger.info("Consumer configuration:")
         logger.info(f"  KAFKA_BOOTSTRAP_SERVERS: {self.kafka_bootstrap_servers}")
@@ -78,7 +78,7 @@ class Config:
         configuration components (host, port, user, password, database).
 
         Returns:
-            str: Formatted PostgreSQL connection URI
+            `str`: Formatted PostgreSQL connection URI
         """
         return (
             f"postgres://{self.postgres_user}"

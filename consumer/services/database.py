@@ -39,10 +39,10 @@ class DatabaseService:
             machine_id (`str`): Unique identifier for the machine
 
         Returns:
-            Machine: Retrieved or newly created `Machine` instance
+            `Machine`: Retrieved or newly created `Machine` instance
 
         Raises:
-            Exception: If database operations fail
+            `Exception`: If database operations fail
         """
         try:
             machine = await Machine.get(machine_id=machine_id)
@@ -69,7 +69,7 @@ class DatabaseService:
             `Failure | None`: The active failure if one exists, otherwise `None`
 
         Raises:
-            Exception: If database operations fail
+            `Exception`: If database operations fail
         """
         try:
             return await Failure.get(machine=machine, is_active=True)
@@ -94,7 +94,7 @@ class DatabaseService:
             `None`
 
         Raises:
-            Exception: If message processing or database operations fail
+            `Exception`: If message processing or database operations fail
         """
         try:
             machine_id = message_data.get("machine_id")

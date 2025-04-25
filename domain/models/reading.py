@@ -69,7 +69,7 @@ class SensorReading(Model):
         or a dictionary object.
 
         Returns:
-            dict[str, float]: Dictionary mapping sensor names to their values
+            `dict[str, float]`: Dictionary mapping sensor names to their values
         """
         if isinstance(self.values, str):
             return json.loads(self.values)
