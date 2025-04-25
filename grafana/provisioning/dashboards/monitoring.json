@@ -29,7 +29,7 @@
   "liveNow": false,
   "panels": [
     {
-      "title": "Prediction Activity",
+      "title": "Prediction Activity (per min)",
       "type": "stat",
       "datasource": {
         "type": "prometheus",
@@ -60,7 +60,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sensor_predictions_total > 0",
+          "expr": "rate(sensor_predictions_total[1m]) * 60",
           "format": "time_series",
           "instant": false,
           "refId": "A"
@@ -71,30 +71,18 @@
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 1,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.1 },
               { "color": "green", "value": 1 }
             ]
           },
-          "mappings": [
-            {
-              "options": {
-                "0": {
-                  "text": "No predictions",
-                  "color": "red"
-                },
-                "1": {
-                  "text": "Predictions active",
-                  "color": "green"
-                }
-              },
-              "type": "value"
-            }
-          ],
+          "mappings": [],
           "unit": "short",
-          "noValue": "No data"
+          "noValue": "No predictions"
         },
         "overrides": []
       }
@@ -195,26 +183,121 @@
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 1,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               { "color": "green", "value": null },
-              { "color": "yellow", "value": 0.5 },
-              { "color": "red", "value": 0.9 }
+              { "color": "yellow", "value": 0.05 },
+              { "color": "red", "value": 0.1 }
             ]
           },
           "mappings": [],
           "unit": "percentunit",
           "min": 0,
-          "max": 1,
+          "max": 0.2,
           "noValue": "No data"
         },
         "overrides": []
       }
     },
     {
+      "title": "Drift Score Over Time",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 5
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sensor_drift_score",
+          "format": "time_series",
+          "legendFormat": "Drift Score",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.05
+              },
+              {
+                "color": "red",
+                "value": 0.1
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      }
+    },
+    {
       "title": "Prediction Latency",
-      "type": "heatmap",
+      "type": "timeseries",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -227,37 +310,15 @@
       },
       "id": 5,
       "options": {
-        "calculate": true,
-        "calculation": {
-          "xBuckets": {
-            "mode": "size",
-            "value": "10"
-          }
-        },
-        "color": {
-          "exponent": 0.5,
-          "fill": "dark-orange",
-          "mode": "scheme",
-          "reverse": false,
-          "scale": "exponential",
-          "scheme": "Oranges",
-          "steps": 64
-        },
-        "exemplars": {
-          "color": "rgba(255,0,255,0.7)"
-        },
-        "filterValues": {
-          "le": 1e-9
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
-          "show": true,
-          "yHistogram": true
-        },
-        "yAxis": {
-          "decimals": 3,
-          "format": "s",
-          "logBase": 2,
-          "min": 0
+          "mode": "multi",
+          "sort": "none"
         }
       },
       "targets": [
@@ -266,26 +327,132 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(increase(sensor_prediction_latency_seconds_bucket[5m])) by (le)",
-          "format": "heatmap",
-          "legendFormat": "{{le}}",
+          "expr": "rate(sensor_prediction_latency_seconds_sum[1m]) / rate(sensor_prediction_latency_seconds_count[1m])",
+          "format": "time_series",
+          "legendFormat": "Average",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.95, rate(sensor_prediction_latency_seconds_bucket[1m]))",
+          "format": "time_series",
+          "legendFormat": "95th Percentile",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.5, rate(sensor_prediction_latency_seconds_bucket[1m]))",
+          "format": "time_series",
+          "legendFormat": "Median (50th Percentile)",
+          "refId": "C"
         }
       ],
       "fieldConfig": {
         "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
+            "axisLabel": "Seconds",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
             "hideFrom": {
               "legend": false,
               "tooltip": false,
               "viz": false
             },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
             "scaleDistribution": {
               "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "area"
             }
-          }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 0.1
+              },
+              {
+                "color": "red",
+                "value": 0.2
+              }
+            ]
+          },
+          "unit": "s"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Average"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "95th Percentile"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Median (50th Percentile)"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       }
     },
     {
@@ -299,7 +466,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 5
+        "y": 13
       },
       "id": 6,
       "options": {
@@ -333,6 +500,158 @@
           "noValue": "No data"
         },
         "overrides": []
+      }
+    },
+    {
+      "title": "Prediction Rate by Cluster (per min)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(sensor_predictions_by_cluster_total{cluster_id=\"2\"}[1m]) * 60",
+          "format": "time_series",
+          "legendFormat": "Cluster 2",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(sensor_predictions_by_cluster_total{cluster_id=\"0\"}[1m]) * 60",
+          "format": "time_series",
+          "legendFormat": "Cluster 0",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(sensor_predictions_by_cluster_total{cluster_id=\"1\"}[1m]) * 60",
+          "format": "time_series",
+          "legendFormat": "Cluster 1",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "Predictions/min",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cluster 2"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "rgb(96, 179, 96)",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cluster 0"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "rgb(240, 183, 70)",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cluster 1"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "rgb(100, 162, 230)",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
       }
     }
   ],
@@ -369,7 +688,7 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {
