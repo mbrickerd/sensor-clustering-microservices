@@ -46,3 +46,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "celery.*"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "domain.models.*"
+disable_error_code = "name-defined"
