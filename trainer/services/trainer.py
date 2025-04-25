@@ -12,7 +12,7 @@ import pickle
 import traceback
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Set
+from typing import Any
 
 import numpy as np
 import polars as pl

@@ -19,7 +19,6 @@ from loguru import logger
 import mlflow
 import mlflow.sklearn
 from domain.models import Cluster, ModelVersion, SensorPrediction, SensorReading
-from mlflow.tracking import MlflowClient
 from predictor.config import config
 from predictor.services.drift import DriftDetectorService
 

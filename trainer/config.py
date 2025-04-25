@@ -7,7 +7,6 @@ values throughout the training service application.
 """
 
 import os
-from typing import Any
 
 from loguru import logger
 
