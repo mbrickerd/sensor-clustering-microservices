@@ -15,8 +15,6 @@ from tortoise.fields import (
 )
 from tortoise.models import Model
 
-from domain.models import SensorReading
-
 
 class SensorPrediction(Model):
     """
