@@ -23,4 +23,6 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 ENV PYTHONPATH=/app
 RUN mkdir -p /app/data
 
-CMD ["bash", "-c", "if [ \"$API_MODE\" = \"true\" ]; then uvicorn trainer.app:app --host 0.0.0.0 --port 8000; elif [ \"$WORKER_MODE\" = \"true\" ]; then celery -A trainer.tasks.train worker --loglevel=info; else python -m trainer.app; fi"]
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+CMD ["/entrypoint.sh"]
