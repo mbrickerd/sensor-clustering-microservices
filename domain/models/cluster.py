@@ -1,16 +1,17 @@
 from tortoise.fields import (
-    IntField, 
-    CharField, 
-    DatetimeField, 
-    JSONField, 
+    BooleanField,
+    CharField,
+    DatetimeField,
     FloatField,
-    BooleanField
+    IntField,
+    JSONField,
 )
 from tortoise.models import Model
 
 
 class Cluster(Model):
     """Model representing a trained clustering model."""
+
     id = IntField(pk=True)
     mlflow_run_id = CharField(max_length=36, unique=True)
     mlflow_model_version = IntField()
@@ -19,10 +20,10 @@ class Cluster(Model):
     n_clusters = IntField()
     silhouette_score = FloatField()
     cluster_profiles = JSONField()
-    
+
     class Meta:
         table = "clusters"
         ordering = ["-created_at"]
-    
+
     def __str__(self) -> str:
         return f"Cluster {self.id} (Run: {self.mlflow_run_id})"
