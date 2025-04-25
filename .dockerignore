@@ -1,0 +1,22 @@
+# Version control
+.git
+.gitignore
+.github/
+
+# Python
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+
+# Development
+.envrc
+.DS_Store
+
+# Documentation
+*.md
+!README.md
+!LICENSE
+
+# Cache directories
+.python-version

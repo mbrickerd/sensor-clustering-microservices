@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sensor-consumer"
+version = "0.1.0"
+description = "Consumer service for sensor failure detection system"
+requires-python = ">=3.10"
+dependencies = [
+    "sensor-domain @ file:///app/domain",
+    "aiokafka>=0.12.0",
+    "asyncpg>=0.30.0",
+    "loguru>=0.7.3",
+    "pydantic>=2.11.3",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["consumer*"]
+exclude = []

@@ -9,15 +9,15 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY domain/pyproject.toml domain/
-COPY producer/pyproject.toml producer/
+COPY consumer/pyproject.toml consumer/
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir uv && \
     cd domain && uv pip install --system -e . && \
-    cd ../producer && uv pip install --system -e .
+    cd ../consumer && uv pip install --system -e .
 
 COPY domain/ /app/domain/
-COPY producer/ /app/producer/
+COPY consumer/ /app/consumer/
 
 FROM python:3.10-slim
 
@@ -28,10 +28,10 @@ RUN apt-get update && \
 WORKDIR /app
 
 COPY --from=builder /app/domain ./domain
-COPY --from=builder /app/producer ./producer
+COPY --from=builder /app/consumer ./consumer
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 ENV PYTHONPATH=/app
 
-CMD ["python", "-m", "producer.app"]
+CMD ["python", "-m", "consumer.app"]

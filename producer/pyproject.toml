@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sensor-producer"
+version = "0.1.0"
+description = "Producer service for sensor failure detection system"
+requires-python = ">=3.10"
+dependencies = [
+    "kafka-python>=2.1.5",
+    "loguru>=0.7.3",
+    "polars>=1.27.1",
+    "pydantic>=2.11.3",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["producer*"]
+exclude = []
