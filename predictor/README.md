@@ -30,16 +30,15 @@ The predictor service is responsible for the inference part of the ML pipeline i
 ```
 predictor/
 ├── Dockerfile                 # Multi-stage Docker build
+├── README.md                  # This documentation file
+├── __init__.py
+├── app.py                     # Main application entry point
+├── config.py                  # Configuration from environment variables
 ├── pyproject.toml             # Project dependencies
-├── predictor/
-│   ├── __init__.py
-│   ├── app.py                 # Main application entry point
-│   ├── config.py              # Configuration from environment variables
-│   └── services/
-│       ├── __init__.py
-│       ├── drift.py           # Drift detection service
-│       └── predictor.py       # Main prediction service
-└── README.md                  # This documentation file
+└── services/
+    ├── __init__.py
+    ├── drift.py               # Drift detection service
+    └── predictor.py           # Main prediction service
 ```
 
 ## Dockerfile Explanation

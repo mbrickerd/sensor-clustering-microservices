@@ -28,19 +28,22 @@ The producer service is responsible for generating realistic simulated sensor da
 ```
 producer/
 ├── Dockerfile                 # Multi-stage Docker build
-├── pyproject.toml             # Project dependencies
-├── producer/
+├── README.md                  # This documentation file
+├── __init__.py
+├── app.py                     # Main application entry point
+├── config.py                  # Configuration from environment variables
+├── models/
 │   ├── __init__.py
-│   ├── app.py                 # Main application entry point
-│   ├── config.py              # Configuration from environment variables
-│   ├── models/                # Pydantic models for message structure
-│   └── services/
-│       ├── __init__.py
-│       └── producer.py        # Main producer implementation
-│   └── utils/
-│       ├── __init__.py
-│       └── analysis.py        # Data analysis utilities
-└── README.md                  # This documentation file
+│   ├── failure.py             # Failure data models
+│   ├── message.py             # Kafka message models
+│   └── reading.py             # Sensor reading models
+├── pyproject.toml             # Project dependencies
+├── services/
+│   ├── __init__.py
+│   └── producer.py            # Main producer implementation
+└── utils/
+    ├── __init__.py
+    └── analysis.py            # Data analysis utilities
 ```
 
 ## Dockerfile Explanation

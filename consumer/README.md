@@ -26,20 +26,19 @@ The consumer service is a critical component of the Sensor Failure Detection Sys
 
 ```
 consumer/
-├── Dockerfile                    # Multi-stage Docker build
-├── pyproject.toml                # Project dependencies
-├── consumer/
+├── Dockerfile                # Multi-stage Docker build
+├── README.md                 # This documentation file
+├── __init__.py
+├── app.py                    # Main application entry point
+├── config.py                 # Configuration from environment variables
+├── pyproject.toml            # Project dependencies
+├── services/
 │   ├── __init__.py
-│   ├── app.py                    # Main application entry point
-│   ├── config.py                 # Configuration from environment variables
-│   ├── services/
-│   │   ├── __init__.py
-│   │   ├── consumer.py           # Kafka consumer implementation
-│   │   └── database.py           # Database operations
-│   └── utils/
-│       ├── __init__.py
-│       └── shutdown.py           # Signal handling for graceful shutdown
-└── README.md                     # This documentation file
+│   ├── consumer.py           # Kafka consumer implementation
+│   └── database.py           # Database operations
+└── utils/
+    ├── __init__.py
+    └── shutdown.py           # Signal handling for graceful shutdown
 ```
 
 ## Dockerfile Explanation
