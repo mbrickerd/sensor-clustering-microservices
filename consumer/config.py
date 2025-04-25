@@ -1,6 +1,7 @@
 import os
+from typing import Any, Dict
+
 from loguru import logger
-from typing import Dict, Any
 
 
 class Config:
@@ -14,14 +15,14 @@ class Config:
         )
         self.kafka_topic = os.environ.get("KAFKA_TOPIC", "machine.sensor.readings")
         self.kafka_group_id = os.environ.get("KAFKA_GROUP_ID", "sensor-consumer-group")
-        
+
         # PostgreSQL settings
         self.postgres_host = os.environ.get("POSTGRES_HOST", "localhost")
         self.postgres_port = int(os.environ.get("POSTGRES_PORT", "5432"))
         self.postgres_user = os.environ.get("POSTGRES_USER", "sensor_user")
         self.postgres_password = os.environ.get("POSTGRES_PASSWORD", "sensor_password")
         self.postgres_db = os.environ.get("POSTGRES_DB", "sensor_data")
-        
+
         # Consumer settings
         self.batch_size = int(os.environ.get("BATCH_SIZE", "100"))
         self.commit_interval_ms = int(os.environ.get("COMMIT_INTERVAL_MS", "5000"))
@@ -45,8 +46,8 @@ class Config:
     def get_postgres_uri(self) -> str:
         """Get the PostgreSQL connection URI."""
         return (
-            f"postgres://{self.postgres_user}" 
-            f":{self.postgres_password}@{self.postgres_host}" 
+            f"postgres://{self.postgres_user}"
+            f":{self.postgres_password}@{self.postgres_host}"
             f":{self.postgres_port}/{self.postgres_db}"
         )
 
