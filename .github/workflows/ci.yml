@@ -30,4 +30,4 @@ jobs:
         run: uv run ruff check .
 
       - name: Run type checking
-        run: uv run mypy consumer/ domain/predictor/ producer/ trainer/
+        run: uv run mypy consumer/ domain/ predictor/ producer/ trainer/
