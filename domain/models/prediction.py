@@ -15,6 +15,8 @@ from tortoise.fields import (
 )
 from tortoise.models import Model
 
+from domain.models import SensorReading
+
 
 class SensorPrediction(Model):
     """
@@ -36,21 +38,21 @@ class SensorPrediction(Model):
         reading (ForeignKey): Reference to the sensor reading being predicted
     """
 
-    id = IntField(pk=True, description="Primary key")
-    cluster_id = IntField(description="Identifier of the predicted cluster")
-    model_version = CharField(
+    id: IntField = IntField(pk=True, description="Primary key")
+    cluster_id: IntField = IntField(description="Identifier of the predicted cluster")
+    model_version: CharField = CharField(
         max_length=50, description="Version of the model used for prediction"
     )
-    confidence_score = FloatField(
+    confidence_score: FloatField = FloatField(
         null=True, description="Confidence level of the prediction"
     )
-    prediction_time = DatetimeField(
+    prediction_time: DatetimeField = DatetimeField(
         auto_now_add=True, description="When the prediction was made"
     )
-    mlflow_run_id = CharField(
+    mlflow_run_id: CharField = CharField(
         max_length=50, null=True, description="MLflow run ID of the model used"
     )
-    model_name = CharField(
+    model_name: CharField = CharField(
         max_length=100,
         null=True,
         default="sensor_failure_clustering",
@@ -62,7 +64,7 @@ class SensorPrediction(Model):
         related_name="predictions",
         on_delete=CASCADE,
         description="Reference to the sensor reading being predicted",
-    )
+    )  # type: ignore
 
     class Meta:
         table = "predictions"
@@ -70,4 +72,4 @@ class SensorPrediction(Model):
         ordering = ["-prediction_time"]
 
     def __str__(self) -> str:
-        return f"Prediction for reading {self.reading_id}: cluster {self.cluster_id}"
+        return f"Prediction for reading {self.id}: cluster {self.cluster_id}"

@@ -6,6 +6,7 @@ collected from machines, including their timestamp and values.
 """
 
 import json
+from typing import cast
 
 from tortoise.fields import (
     CASCADE,
@@ -34,30 +35,32 @@ class SensorReading(Model):
         failure (`ForeignKey`, optional): Reference to an active failure, if any
     """
 
-    id = IntField(pk=True, description="Primary key")
-    timestamp = DatetimeField(description="When the reading was taken")
-    values = JSONField(description="Sensor measurements stored as a JSON object")
+    id: IntField = IntField(pk=True, description="Primary key")
+    timestamp: DatetimeField = DatetimeField(description="When the reading was taken")
+    values: JSONField = JSONField(
+        description="Sensor measurements stored as a JSON object"
+    )
 
     machine = ForeignKeyField(
         "models.Machine",
         related_name="readings",
         on_delete=CASCADE,
         description="Reference to the machine that produced this reading",
-    )
+    )  # type: ignore
     failure = ForeignKeyField(
         "models.Failure",
         related_name="readings",
         on_delete=SET_NULL,
         null=True,
         description="Reference to an active failure, if any",
-    )
+    )  # type: ignore
 
     class Meta:
         table = "readings"
         ordering = ["-timestamp"]
 
     def __str__(self) -> str:
-        return f"Reading for {self.machine_id} at {self.timestamp}"
+        return f"Reading for {self.id} at {self.timestamp}"
 
     @property
     def values_dict(self) -> dict[str, float]:
@@ -72,6 +75,6 @@ class SensorReading(Model):
             `dict[str, float]`: Dictionary mapping sensor names to their values
         """
         if isinstance(self.values, str):
-            return json.loads(self.values)
+            return cast(dict[str, float], json.loads(self.values))
 
-        return self.values
+        return cast(dict[str, float], self.values)

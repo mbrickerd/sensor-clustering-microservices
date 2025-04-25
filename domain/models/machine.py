@@ -8,6 +8,8 @@ being monitored by the system.
 from tortoise.fields import CharField, DatetimeField, IntField, ReverseRelation
 from tortoise.models import Model
 
+from domain.models import Failure, SensorReading
+
 
 class Machine(Model):
     """

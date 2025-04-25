@@ -12,7 +12,7 @@ import pickle
 import traceback
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import polars as pl
@@ -24,7 +24,7 @@ from tortoise import Tortoise
 
 import mlflow
 import mlflow.sklearn
-from domain.models import Cluster, Failure, ModelVersion, init_db
+from domain.models import Cluster, Failure, ModelVersion, SensorReading, init_db
 from mlflow.tracking import MlflowClient
 from trainer.config import config
 
@@ -131,8 +131,12 @@ class TrainerService:
                 for col in sensor_cols:
                     values = label_data.select(col).to_series()
                     pattern[col] = {
-                        "mean": float(values.mean()),
-                        "std": float(values.std()),
+                        "mean": float(
+                            str(values.mean()) if values.mean() is not None else 0.0
+                        ),
+                        "std": float(
+                            str(values.std()) if values.std() is not None else 0.0
+                        ),
                     }
 
                 label_patterns[float(label)] = pattern
@@ -170,10 +174,11 @@ class TrainerService:
 
         failure_episodes = []
         for failure in failures:
-            if not failure.readings:
-                continue
+            readings_list = await failure.readings.all()  # type: ignore
 
-            readings = sorted(failure.readings, key=lambda r: r.timestamp)
+            readings = sorted(
+                cast(list[SensorReading], readings_list), key=lambda r: r.timestamp
+            )
 
             episode_data = []
             for reading in readings:

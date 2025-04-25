@@ -78,7 +78,7 @@ The platform uses environment variables for configuration. These can be set dire
 
 ## Prerequisites
 
-- [**Python 3.12+**](https://www.python.org/downloads/)
+- [**Python 3.10+**](https://www.python.org/downloads/)
 - [**Docker**](https://docs.docker.com/get-docker/) and [**Docker Compose**](https://docs.docker.com/compose/install/)
 - [**uv**](https://docs.astral.sh/uv/) (for dependency management)
 - [**direnv**](https://direnv.net/) (optional, but recommended)

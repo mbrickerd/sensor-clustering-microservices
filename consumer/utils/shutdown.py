@@ -9,6 +9,7 @@ import asyncio
 import signal
 from asyncio import AbstractEventLoop
 from signal import Signals
+from typing import Callable
 
 from loguru import logger
 
@@ -44,6 +45,27 @@ async def shutdown(
     loop.stop()
 
 
+def create_signal_handler(
+    s: Signals, loop: AbstractEventLoop, consumer: SensorDataConsumer
+) -> Callable[[], asyncio.Task[None]]:
+    """
+    Create a handler function for a specific termination signal.
+
+    Creates a callable that will initiate the shutdown process when invoked.
+    This function is used to register handlers for termination signals like
+    SIGINT and SIGTERM.
+
+    Args:
+        s (`Signals`): The signal to handle
+        loop (`AbstractEventLoop`): The asyncio event loop to stop
+        consumer (`SensorDataConsumer`): The Kafka consumer to stop
+
+    Returns:
+        `Callable[[], asyncio.Task[None]]`: A function that creates and returns a shutdown task
+    """
+    return lambda: asyncio.create_task(shutdown(s, loop, consumer))
+
+
 async def setup_signal_handlers(
     loop: AbstractEventLoop, consumer: SensorDataConsumer
 ) -> None:
@@ -62,6 +84,5 @@ async def setup_signal_handlers(
         `None`
     """
     for sig in (signal.SIGINT, signal.SIGTERM):
-        loop.add_signal_handler(
-            sig, lambda s=sig: asyncio.create_task(shutdown(s, loop, consumer))
-        )
+        handler = create_signal_handler(sig, loop, consumer)
+        loop.add_signal_handler(sig, handler)

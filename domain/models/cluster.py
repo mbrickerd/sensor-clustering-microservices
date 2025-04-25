@@ -37,23 +37,23 @@ class Cluster(Model):
         cluster_profiles (`dict`): JSON representation of the cluster centroids and characteristics
     """
 
-    id = IntField(pk=True, description="Primary key")
-    mlflow_run_id = CharField(
+    id: IntField = IntField(pk=True, description="Primary key")
+    mlflow_run_id: CharField = CharField(
         max_length=36,
         unique=True,
         description="Unique identifier for the MLflow run where this model is tracked",
     )
     mlflow_model_version = IntField(description="MLflow model registry version number")
-    created_at = DatetimeField(
+    created_at: DatetimeField = DatetimeField(
         auto_now_add=True, description="Timestamp when this record was created"
     )
-    is_active = BooleanField(
+    is_active: BooleanField = BooleanField(
         default=False,
         description="Whether this is the currently active clustering model",
     )
-    n_clusters = IntField(description="Number of clusters in this model")
-    silhouette_score = FloatField(description="Clustering quality metric")
-    cluster_profiles = JSONField(
+    n_clusters: IntField = IntField(description="Number of clusters in this model")
+    silhouette_score: FloatField = FloatField(description="Clustering quality metric")
+    cluster_profiles: JSONField = JSONField(
         description="JSON representation of the cluster centroids and characteristics"
     )
 

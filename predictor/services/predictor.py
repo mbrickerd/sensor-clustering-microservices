@@ -11,7 +11,7 @@ become available.
 import asyncio
 import pickle
 from time import time
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 from loguru import logger
@@ -148,7 +148,7 @@ class PredictorService:
             .prefetch_related("machine")
         )
 
-        return readings
+        return cast(list[SensorReading], readings)
 
     def extract_features(self, reading: SensorReading) -> dict[str, float] | None:
         """

@@ -27,15 +27,17 @@ class DriftEvent(Model):
         current_distribution (`dict`): Statistical summary of the current distribution
     """
 
-    id = IntField(pk=True, description="Primary key")
-    detection_time = DatetimeField(
+    id: IntField = IntField(pk=True, description="Primary key")
+    detection_time: DatetimeField = DatetimeField(
         auto_now_add=True, description="When the drift was detected"
     )
-    drift_score = FloatField(description="Quantitative measure of drift magnitude")
-    reference_distribution = JSONField(
+    drift_score: FloatField = FloatField(
+        description="Quantitative measure of drift magnitude"
+    )
+    reference_distribution: JSONField = JSONField(
         description="Statistical summary of the reference distribution"
     )
-    current_distribution = JSONField(
+    current_distribution: JSONField = JSONField(
         description="Statistical summary of the current distribution"
     )
 

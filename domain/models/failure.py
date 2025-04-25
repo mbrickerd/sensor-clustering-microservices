@@ -15,6 +15,8 @@ from tortoise.fields import (
 )
 from tortoise.models import Model
 
+from domain.models import SensorReading
+
 
 class Failure(Model):
     """
@@ -47,7 +49,7 @@ class Failure(Model):
         related_name="failures",
         on_delete=CASCADE,
         description="Reference to the machine experiencing the failure",
-    )
+    )  # type: ignore
     readings = ReverseRelation["SensorReading"]
 
     class Meta:
@@ -55,4 +57,4 @@ class Failure(Model):
         ordering = ["-start_time"]
 
     def __str__(self) -> str:
-        return f"Failure on {self.machine_id} from {self.start_time}"
+        return f"Failure on {self.id} from {self.start_time}"

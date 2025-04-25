@@ -7,7 +7,7 @@ registration, failure detection and tracking, and sensor reading storage.
 """
 
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 
 from loguru import logger
 from tortoise.exceptions import DoesNotExist
@@ -45,14 +45,14 @@ class DatabaseService:
             `Exception`: If database operations fail
         """
         try:
-            machine = await Machine.get(machine_id=machine_id)
+            machine = await Machine.get(id=machine_id)
             machine.last_seen = datetime.now()
             await machine.save()
-            return machine
+            return cast(Machine, machine)
 
         except DoesNotExist:
             logger.info(f"Creating new machine: {machine_id}")
-            return await Machine.create(machine_id=machine_id)
+            return cast(Machine, await Machine.create(id=machine_id))
 
     @staticmethod
     async def get_active_failure(machine: Machine) -> Failure | None:
@@ -72,7 +72,8 @@ class DatabaseService:
             `Exception`: If database operations fail
         """
         try:
-            return await Failure.get(machine=machine, is_active=True)
+            failure = await Failure.get(machine=machine, is_active=True)
+            return cast(Failure, failure)
 
         except DoesNotExist:
             return None
@@ -121,6 +122,7 @@ class DatabaseService:
                             machine=machine,
                             start_time=timestamp,
                         )
+                        failure = cast(Failure, failure)
                         logger.info(f"New failure detected on machine {machine_id}")
 
                 elif not has_failure:

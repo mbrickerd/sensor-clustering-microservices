@@ -21,3 +21,28 @@ dependencies = [
     "types-requests>=2.32.0.20250328",
     "uvicorn>=0.34.2",
 ]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+
+[[tool.mypy.overrides]]
+module = "sklearn.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "mlflow.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "aiokafka.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "kafka.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "celery.*"
+ignore_missing_imports = true
