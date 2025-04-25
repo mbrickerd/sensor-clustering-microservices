@@ -43,7 +43,9 @@ def mlflow_healthcheck() -> bool:
                 return True
 
         except Exception as err:
-            logger.warning(f"MLflow check failed (attempt {i+1}/{max_retries}): {err}")
+            logger.warning(
+                f"MLflow check failed (attempt {i + 1}/{max_retries}): {err}"
+            )
 
         time.sleep(retry_interval)
 
@@ -85,7 +87,7 @@ def trainer_healthcheck() -> bool:
 
         except Exception as err:
             logger.warning(
-                f"Trainer API check failed (attempt {i+1}/{max_retries}): {err}"
+                f"Trainer API check failed (attempt {i + 1}/{max_retries}): {err}"
             )
 
         time.sleep(retry_interval)
