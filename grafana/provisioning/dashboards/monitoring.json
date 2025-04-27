@@ -615,7 +615,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "rgb(96, 179, 96)",
+                  "fixedColor": "rgb(240, 183, 70)",
                   "mode": "fixed"
                 }
               }
@@ -630,7 +630,7 @@
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "rgb(240, 183, 70)",
+                  "fixedColor": "rgb(96, 179, 96)",
                   "mode": "fixed"
                 }
               }

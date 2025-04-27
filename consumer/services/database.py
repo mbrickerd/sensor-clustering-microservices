@@ -45,14 +45,14 @@ class DatabaseService:
             `Exception`: If database operations fail
         """
         try:
-            machine = await Machine.get(id=machine_id)
+            machine = await Machine.get(machine_id=machine_id)
             machine.last_seen = datetime.now()
             await machine.save()
             return cast(Machine, machine)
 
         except DoesNotExist:
             logger.info(f"Creating new machine: {machine_id}")
-            return cast(Machine, await Machine.create(id=machine_id))
+            return cast(Machine, await Machine.create(machine_id=machine_id))
 
     @staticmethod
     async def get_active_failure(machine: Machine) -> Failure | None:

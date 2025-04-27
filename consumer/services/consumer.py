@@ -13,7 +13,7 @@ from aiokafka.errors import KafkaError
 from loguru import logger
 
 from consumer.config import config
-from consumer.services import DatabaseService
+from consumer.services.database import DatabaseService
 
 
 class SensorDataConsumer:

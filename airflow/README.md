@@ -72,7 +72,7 @@ Key aspects:
 - Incorporates our custom domain and trainer modules
 - Sets up proper permissions and directory structures
 - Installs Python dependencies with `uv`
-- Configures PYTHONPATH to access our custom modules
+- Configures `PYTHONPATH` to access our custom modules
 
 ## Environment Variables
 
@@ -157,4 +157,4 @@ Common issues and their solutions:
 3. **Connection issues with external services**
    - Verify network connectivity between containers
    - Check connection configurations in Airflow UI
-   - Ensure services are healthy in docker-compose
+   - Ensure services are healthy in `docker-compose`
