@@ -14,7 +14,7 @@ from trainer.celery import celery
 from trainer.services import TrainerService
 
 
-async def run():
+async def run() -> str:
     """
     Run the training job asynchronously.
 

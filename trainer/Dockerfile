@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY domain/ /app/domain/
 COPY trainer/ /app/trainer/
+COPY trainer/scripts/entrypoint.sh /app/scripts/entrypoint.sh
 
 RUN pip install uv
 RUN cd /app/domain && uv pip install --system -e .
@@ -19,10 +20,11 @@ COPY --from=builder /app/domain ./domain
 COPY --from=builder /app/trainer ./trainer
 COPY --from=builder /usr/local/lib/python3.10/site-packages /usr/local/lib/python3.10/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /app/scripts/entrypoint.sh /scripts/entrypoint.sh
+
+RUN chmod +x /scripts/entrypoint.sh
 
 ENV PYTHONPATH=/app
 RUN mkdir -p /app/data
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-CMD ["/entrypoint.sh"]
+CMD ["/scripts/entrypoint.sh"]
