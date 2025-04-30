@@ -28,9 +28,9 @@ jobs:
     - name: Azure login
       uses: azure/login@v1
       with:
-        client-id: ${{ vars.AZURE_CLIENT_ID }}
-        tenant-id: ${{ vars.AZURE_TENANT_ID }}
-        subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+        client-id: ${{ vars.ARM_CLIENT_ID }}
+        tenant-id: ${{ vars.ARM_TENANT_ID }}
+        subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
     
     - name: ACR login
       run: az acr login --name ${{ env.ACR_NAME }}
@@ -90,6 +90,8 @@ jobs:
                   value: "data_sensors.csv"
                 - name: STORAGE_CONTAINER
                   value: "data"
+              nodeSelector:
+                kubernetes.io/os: linux
         EOF
         
         # Apply the deployment
