@@ -8,10 +8,14 @@ version = "0.1.0"
 description = "Producer service for sensor failure detection system"
 requires-python = ">=3.10"
 dependencies = [
-    "kafka-python>=2.1.5",
+    "azure-eventhub>=5.15.0",
+    "azure-identity>=1.11.0",
+    "azure-keyvault-secrets>=4.1.0",
+    "azure-storage-blob>=12.16.0",
     "loguru>=0.7.3",
     "polars>=1.27.1",
     "pydantic>=2.11.3",
+    "prometheus-client>=0.17.0",
 ]
 
 [tool.setuptools.packages.find]
