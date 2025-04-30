@@ -32,20 +32,15 @@ jobs:
         tenant-id: ${{ vars.ARM_TENANT_ID }}
         subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
     
-    - name: Login to Azure Container Registry
-      uses: azure/container-registry-login@v1
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
       with:
-        registry: ${{ env.ACR_NAME }}.azurecr.io
-        client-id: ${{ vars.ARM_CLIENT_ID }}
-        tenant-id: ${{ vars.ARM_TENANT_ID }}
-    
-    - name: Build and push
-      run: |
-        cd ${{ github.workspace }}
-        docker build -t ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:${{ github.sha }} -f producer/Dockerfile .
-        docker tag ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:latest
-        docker push ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:${{ github.sha }}
-        docker push ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:latest
+        context: .
+        file: producer/Dockerfile
+        push: true
+        tags: |
+          ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:${{ github.sha }}
+          ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:latest
     
     - name: Set AKS context
       uses: azure/aks-set-context@v3
