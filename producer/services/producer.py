@@ -2,56 +2,38 @@
 Sensor data producer implementation for the Sensor Data Producer Service.
 
 This module provides the main implementation of the sensor data simulator
-that generates realistic machine sensor readings and publishes them to Kafka.
-It simulates both normal machine operation and failure conditions based on
-statistical models derived from reference data.
+that generates realistic machine sensor readings and publishes them to Azure
+Event Hubs. It simulates both normal machine operation and failure conditions
+based on statistical models derived from reference data.
 """
 
 import json
 import random
 import time
 from datetime import datetime
-from typing import Any, TypedDict
+from typing import Any, cast
 from uuid import uuid4
 
-from kafka import KafkaProducer
+from azure.eventhub import EventData, EventHubProducerClient
+from azure.identity import DefaultAzureCredential
 from loguru import logger
 
 from producer.config import config
 from producer.models import FailureInfo, SensorMessage, SensorReading
-from producer.utils.analysis import analyse_dataset
-
-
-class MachineState(TypedDict):
-    """
-    Type definition for tracking machine state during simulation.
-
-    This class defines the structure of the machine state dictionary that
-    tracks the current values of all sensors, active failure information,
-    and timing data for the simulation.
-
-    Attributes:
-        `active_failure`: Current failure information or `None` if no active failure
-        `current_values`: Dictionary mapping sensor names to their current values
-        `time`: Current time counter for active failures
-        `duration`: Total duration of the active failure
-    """
-
-    active_failure: FailureInfo | None
-    current_values: dict[str, float]
-    time: float | None
-    duration: float | None
+from producer.services.health import HealthService
+from producer.services.storage import StorageService
+from producer.utils import analyse_dataset
 
 
 class SensorDataProducer:
     """
-    Service for generating and publishing simulated sensor data to Kafka.
+    Service for generating and publishing simulated sensor data to Azure Event Hubs.
 
     This class is responsible for simulating realistic sensor readings from
     industrial machines, including both normal operation and failure conditions.
     It uses statistical properties derived from reference data to generate
     values that mimic real-world behavior, and publishes these readings to
-    Kafka in a consistent format.
+    Event Hubs in a consistent format.
 
     The simulation includes random drift, mean-reversion, and the ability to
     simulate different types of failures with specific sensor signatures.
@@ -59,9 +41,10 @@ class SensorDataProducer:
     Attributes:
         `sensor_stats`: Statistical properties of each sensor during normal operation
         `failure_patterns`: Patterns of sensor behavior during different failure types
-        `producer`: KafkaProducer instance for publishing messages
+        `producer_client`: EventHubProducerClient instance for publishing messages
         `machine_id`: Unique identifier for the simulated machine
         `machine`: Current state of the simulated machine
+        `health_service`: Optional health service for monitoring and metrics
     """
 
     def __init__(self) -> None:
@@ -69,33 +52,90 @@ class SensorDataProducer:
         Initialise the producer with data analysis.
 
         Analyses reference data to extract statistical properties of sensors
-        during normal operation and failure conditions. Initialises the Kafka
+        during normal operation and failure conditions. Initialises the Event Hubs
         producer connection and creates a simulated machine with random initial
         sensor values.
 
         Returns:
             `None`
         """
-        self.sensor_stats, self.failure_patterns = analyse_dataset(
-            config.data_file,
-            config.num_sensors,
+        # Initialize empty dictionaries first to avoid redefining attributes
+        self.sensor_stats: dict[str, dict[str, Any]] = {}
+        self.failure_patterns: dict[str, dict[str, Any]] = {}
+
+        storage_service = StorageService(
+            user_id="sensor-producer",
+            container_name=config.storage_container,
+            account_name=config.storage_account_name,
         )
 
-        self.producer = KafkaProducer(
-            bootstrap_servers=config.kafka_bootstrap_servers,
-            value_serializer=lambda v: json.dumps(v).encode("utf-8"),
-        )
+        try:
+            file_content = storage_service.read_blob(config.data_file, binary=False)
+            # Fix type compatibility issue by explicitly casting to str
+            if isinstance(file_content, str):
+                # Use type casting to ensure proper type assignment
+                analysis_result = analyse_dataset(
+                    file_content,
+                    config.num_sensors,
+                )
+                # Cast the result to the expected types
+                self.sensor_stats = cast(dict[str, dict[str, Any]], analysis_result[0])
+                self.failure_patterns = cast(
+                    dict[str, dict[str, Any]], analysis_result[1]
+                )
+            else:
+                # Handle the case when file_content is bytes
+                logger.warning(
+                    "File content is not in string format. Using empty data."
+                )
+
+        except Exception as err:
+            logger.error(f"Failed to read or analyse data file: {err}")
+
+        if config.eventhub_connection_string:
+            self.producer_client = EventHubProducerClient.from_connection_string(
+                conn_str=config.eventhub_connection_string,
+                eventhub_name=config.eventhub_name,
+            )
+
+        else:
+            credential = DefaultAzureCredential()
+            self.producer_client = EventHubProducerClient(
+                fully_qualified_namespace=f"{config.eventhub_namespace}.servicebus.windows.net",
+                eventhub_name=config.eventhub_name,
+                credential=credential,
+            )
 
         self.machine_id = str(uuid4())[:8]
-        self.machine: MachineState = {
+        self.machine: dict[str, Any] = {
             "active_failure": None,
             "current_values": self.generate_initial_values(),
             "time": None,
             "duration": None,
         }
 
+        self.health_service = HealthService()
+
         logger.info("Producer initialised with 1 machine")
-        logger.info(f"Connected to Kafka at {config.kafka_bootstrap_servers}")
+        logger.info(f"Connected to Event Hub: {config.eventhub_name}")
+
+    def check_health(self) -> bool:
+        """
+        Check the health of the producer service.
+
+        Verifies that the Event Hubs client is still functional.
+
+        Returns:
+            `bool`: True if the service is healthy, False otherwise
+        """
+        try:
+            return self.producer_client is not None and not getattr(
+                self.producer_client, "_closed", False
+            )
+
+        except Exception as err:
+            logger.error(f"Health check failed: {err}")
+            return False
 
     def generate_initial_values(self) -> dict[str, float]:
         """
@@ -109,7 +149,7 @@ class SensorDataProducer:
         Returns:
             `dict[str, float]`: Dictionary mapping sensor names to their initial values
         """
-        values = {}
+        values: dict[str, float] = {}
         for i in range(1, config.num_sensors + 1):
             col = f"Sensor {i}"
             stats = self.sensor_stats.get(col, {"mean": 0, "std": 1})
@@ -136,8 +176,8 @@ class SensorDataProducer:
                     {"readings": {sensor_name: value, ...},
                     "has_failure": bool}
         """
-        current_values = self.machine["current_values"]
-        readings = {}
+        current_values = cast(dict[str, float], self.machine["current_values"])
+        readings: dict[str, float] = {}
 
         has_failure = self.machine["active_failure"] is not None
 
@@ -157,7 +197,7 @@ class SensorDataProducer:
             readings[col] = round(new_value, 6)
 
         if self.machine["active_failure"]:
-            failure = self.machine["active_failure"]
+            failure = cast(FailureInfo, self.machine["active_failure"])
             pattern = random.choice(list(self.failure_patterns.values()))
             progress = min(1.0, failure.time / 10)
             for col, stats in pattern.items():
@@ -171,6 +211,8 @@ class SensorDataProducer:
             if failure.time >= failure.duration:
                 self.machine["active_failure"] = None
                 logger.info(f"Failure resolved on Machine {self.machine_id}")
+                if self.health_service:
+                    self.health_service.set_active_failures(0)
 
         elif random.random() < 0.05:
             self.machine["active_failure"] = FailureInfo(
@@ -178,17 +220,20 @@ class SensorDataProducer:
                 duration=random.randint(30, 60),
             )
             logger.info(f"Failure started on {self.machine_id}")
+            if self.health_service:
+                self.health_service.increment_failure_events()
+                self.health_service.set_active_failures(1)
 
         return {"readings": readings, "has_failure": has_failure}
 
     def produce_messages(self) -> None:
         """
-        Continuously produce and publish sensor messages to Kafka.
+        Continuously produce and publish sensor messages to Azure Event Hubs.
 
         Enters a loop that simulates sensor readings, formats them into
-        messages, and publishes them to the configured Kafka topic. The
+        messages, and publishes them to the configured Event Hub. The
         loop continues until interrupted by a keyboard interrupt or an
-        exception occurs. Handles cleanup of Kafka producer resources
+        exception occurs. Handles cleanup of Event Hubs producer resources
         upon exit.
 
         Returns:
@@ -196,6 +241,7 @@ class SensorDataProducer:
         """
         try:
             while True:
+                start_time = time.time()
                 sensor_data = self.update_sensor_values()
                 sensor_reading = SensorReading(
                     readings=sensor_data["readings"],
@@ -208,8 +254,24 @@ class SensorDataProducer:
                     readings=sensor_reading,
                 )
 
-                self.producer.send(config.kafka_topic, message.model_dump())
-                self.producer.flush()
+                try:
+                    event_data_batch = self.producer_client.create_batch()
+                    serialized_message = json.dumps(message.model_dump()).encode(
+                        "utf-8"
+                    )
+                    event_data_batch.add(EventData(serialized_message))
+
+                    self.producer_client.send_batch(event_data_batch)
+
+                    if self.health_service:
+                        self.health_service.increment_messages_sent()
+                        processing_time = time.time() - start_time
+                        self.health_service.observe_processing_time(processing_time)
+
+                except Exception as err:
+                    logger.error(f"Error sending message: {str(err)}")
+                    if self.health_service:
+                        self.health_service.increment_message_errors()
 
                 if sensor_data["has_failure"]:
                     logger.debug("Sent message with failure indication")
@@ -223,4 +285,4 @@ class SensorDataProducer:
             logger.error(f"Error in producer: {str(err)}")
 
         finally:
-            self.producer.close()
+            self.producer_client.close()

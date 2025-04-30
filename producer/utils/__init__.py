@@ -13,6 +13,7 @@ from .analysis import (
     get_default_failure_patterns,
     get_default_sensor_statistics,
 )
+from .server import start_health_server
 
 __all__ = [
     "calculate_sensor_statistics",
@@ -20,4 +21,5 @@ __all__ = [
     "get_default_sensor_statistics",
     "get_default_failure_patterns",
     "analyse_dataset",
+    "start_health_server",
 ]

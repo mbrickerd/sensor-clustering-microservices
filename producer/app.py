@@ -11,7 +11,7 @@ import time
 
 from loguru import logger
 
-from producer.services import SensorDataProducer
+from producer.services.producer import SensorDataProducer
 
 if __name__ == "__main__":
     time.sleep(10)
