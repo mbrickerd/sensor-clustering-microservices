@@ -13,7 +13,9 @@ spec:
     metadata:
       labels:
         app: sensor-producer
+        azure.workload.identity/use: "true"
     spec:
+      serviceAccountName: sensor-producer-sa
       containers:
         - name: sensor-producer
           image: ${ACR_NAME}.azurecr.io/sensor-producer:${IMAGE_TAG}
