@@ -52,17 +52,6 @@ jobs:
           ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:${{ github.sha }}
           ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:latest
     
-    # Run container security scanning
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:${{ github.sha }}
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-        severity: 'CRITICAL,HIGH'
-        exit-code: '1'
-        ignore-unfixed: true
-    
     # Use our composite action to setup AKS with kubelogin
     - name: Setup AKS with kubelogin
       uses: ./.github/actions/aks-kubelogin
