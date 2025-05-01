@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor-producer
+  labels:
+    app: sensor-producer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sensor-producer
+  template:
+    metadata:
+      labels:
+        app: sensor-producer
+    spec:
+      containers:
+        - name: sensor-producer
+          image: ${ACR_NAME}.azurecr.io/sensor-producer:${IMAGE_TAG}
+          ports:
+            - containerPort: 8080
+            - containerPort: 8000
+          env:
+            - name: KEY_VAULT_URL
+              value: "${KEY_VAULT_URL}"
+            - name: EVENTHUB_NAME
+              value: "sensors"
+            - name: EVENTHUB_NAMESPACE
+              value: "${EVENTHUB_NAMESPACE}"
+            - name: NUM_SENSORS
+              value: "20"
+            - name: SIMULATION_INTERVAL_MS
+              value: "1000"
+            - name: SENSOR_DATA_FILE
+              value: "data_sensors.csv"
+            - name: STORAGE_CONTAINER
+              value: "data"
+      nodeSelector:
+        kubernetes.io/os: linux
