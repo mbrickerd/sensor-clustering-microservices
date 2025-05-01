@@ -69,18 +69,8 @@ jobs:
         ACR_NAME: ${{ env.ACR_NAME }}
         IMAGE_TAG: ${{ github.sha }}
     
-    # Deploy to AKS using kubectl-action
+    # Deploy to AKS using kubectl directly
     - name: Deploy to AKS
-      uses: actions-hub/kubectl@master
-      with:
-        args: apply -f processed-deployment.yaml
-      env:
-        KUBE_CONFIG: ${{ env.KUBECONFIG }}
-    
-    # Check rollout status
-    - name: Check rollout status
-      uses: actions-hub/kubectl@master
-      with:
-        args: rollout status deployment/sensor-producer
-      env:
-        KUBE_CONFIG: ${{ env.KUBECONFIG }}
+      run: |
+        kubectl apply -f processed-deployment.yaml
+        kubectl rollout status deployment/sensor-producer
