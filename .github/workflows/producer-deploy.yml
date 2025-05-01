@@ -34,14 +34,9 @@ jobs:
         subscription-id: ${{ vars.ARM_SUBSCRIPTION_ID }}
 
     # Configure Docker to use the Azure CLI credentials
-    - name: Set up Docker for ACR
-      uses: azure/setup-acr-docker@v2
-      with:
-        acr-name: ${{ env.ACR_NAME }}
-
-    # Set up Docker Buildx
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+    - name: Docker login to ACR
+      run: |
+        az acr login --name ${{ env.ACR_NAME }}
 
     # Build and push Docker image
     - name: Build and push Docker image
