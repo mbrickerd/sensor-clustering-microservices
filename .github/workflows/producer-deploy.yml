@@ -17,7 +17,7 @@ env:
   ACR_NAME: acrsensorclusteringtst
   AKS_CLUSTER_NAME: aks-sensor-clustering-tst
   AKS_RESOURCE_GROUP: rg-sensor-clustering-tst
-  AZURE_CLIENT_ID: 18793384-9b5b-4935-80d4-892b1d2f3490 # The client ID of your managed identity
+  AZURE_CLIENT_ID: eb334696-c08b-4f57-a39b-f10b7dc803bb
   NAMESPACE: sensors
 
 jobs:
