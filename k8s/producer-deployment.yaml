@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sensor-producer
+  namespace: sensors
   labels:
     app: sensor-producer
 spec:
@@ -14,14 +15,34 @@ spec:
       labels:
         app: sensor-producer
         azure.workload.identity/use: "true"
+      annotations:
+        azure.workload.identity/client-id: "${AZURE_CLIENT_ID}" # Client ID of your managed identity
+        azure.workload.identity/tenant-id: "${AZURE_TENANT_ID}" # Add tenant ID for extra validation
     spec:
-      serviceAccountName: sensor-producer-sa
+      serviceAccountName: sensor-producer-sa # Match with your federated credential
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: sensor-producer
           image: ${ACR_NAME}.azurecr.io/sensor-producer:${IMAGE_TAG}
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
           ports:
             - containerPort: 8080
             - containerPort: 8000
+          resources:
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
           env:
             - name: KEY_VAULT_URL
               value: "${KEY_VAULT_URL}"
@@ -37,5 +58,11 @@ spec:
               value: "data_sensors.csv"
             - name: STORAGE_CONTAINER
               value: "data"
+          volumeMounts:
+            - name: temp-volume
+              mountPath: /tmp
+      volumes:
+        - name: temp-volume
+          emptyDir: {}
       nodeSelector:
         kubernetes.io/os: linux

@@ -10,13 +10,15 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write
-  contents: read
+  id-token: write  # Required for OIDC token-based authentication
+  contents: read   # Required to checkout code
 
 env:
   ACR_NAME: acrsensorclusteringtst
   AKS_CLUSTER_NAME: aks-sensor-clustering-tst
   AKS_RESOURCE_GROUP: rg-sensor-clustering-tst
+  AZURE_CLIENT_ID: 18793384-9b5b-4935-80d4-892b1d2f3490 # The client ID of your managed identity
+  NAMESPACE: sensors
 
 jobs:
   build-and-deploy:
@@ -26,7 +28,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
     
-    # Login to Azure
+    # Login to Azure using OIDC
     - name: Azure login
       uses: azure/login@v1
       with:
@@ -39,7 +41,7 @@ jobs:
       run: |
         az acr login --name ${{ env.ACR_NAME }}
 
-    # Build and push Docker image
+    # Build and push Docker image with security scanning
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
@@ -50,12 +52,37 @@ jobs:
           ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:${{ github.sha }}
           ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:latest
     
+    # Run container security scanning
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:${{ github.sha }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'CRITICAL,HIGH'
+        exit-code: '1'
+        ignore-unfixed: true
+    
     # Use our composite action to setup AKS with kubelogin
     - name: Setup AKS with kubelogin
       uses: ./.github/actions/aks-kubelogin
       with:
         resource-group: ${{ env.AKS_RESOURCE_GROUP }}
         cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+    
+    # Create namespace if it doesn't exist
+    - name: Create namespace if not exists
+      run: |
+        kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+    
+    # Apply the service account first
+    - name: Apply ServiceAccount
+      run: |
+        envsubst < k8s/producer-service-account.yaml > processed-sa.yaml
+        kubectl apply -f processed-sa.yaml
+      env:
+        AZURE_CLIENT_ID: ${{ env.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
     
     # Substitute environment variables in manifests
     - name: Substitute environment variables
@@ -68,9 +95,19 @@ jobs:
         EVENTHUB_NAMESPACE: ${{ vars.EVENTHUB_NAMESPACE }}
         ACR_NAME: ${{ env.ACR_NAME }}
         IMAGE_TAG: ${{ github.sha }}
+        AZURE_CLIENT_ID: ${{ env.AZURE_CLIENT_ID }}
+        AZURE_TENANT_ID: ${{ vars.ARM_TENANT_ID }}
     
     # Deploy to AKS using kubectl directly
     - name: Deploy to AKS
       run: |
         kubectl apply -f processed-deployment.yaml
-        kubectl rollout status deployment/sensor-producer
+        kubectl rollout status deployment/sensor-producer -n ${{ env.NAMESPACE }}
+    
+    # Verify deployment status
+    - name: Verify deployment
+      run: |
+        kubectl get deployment sensor-producer -n ${{ env.NAMESPACE }} -o wide
+        echo "Checking for successful pod creation..."
+        kubectl wait --for=condition=available deployment/sensor-producer --timeout=60s -n ${{ env.NAMESPACE }}
+      continue-on-error: true
