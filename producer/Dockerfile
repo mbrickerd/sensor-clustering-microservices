@@ -46,7 +46,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
 # Expose ports for health checks and metrics
 EXPOSE 8080 8000
 
-USER appuser
+USER 1001
 
 ENV TMPDIR=/tmp/app_temp
 
