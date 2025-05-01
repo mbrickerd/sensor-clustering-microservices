@@ -50,16 +50,9 @@ jobs:
           ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:${{ github.sha }}
           ${{ env.ACR_NAME }}.azurecr.io/sensor-producer:latest
     
-    # Install kubelogin for AAD authentication
-    - name: Install kubelogin
-      uses: azure/use-kubelogin@v1
-      with:
-        kubelogin-version: 'latest'  # Using a specific version instead of 'latest'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
-    - name: Set AKS context
-      uses: azure/aks-set-context@v3
+    # Use our composite action to setup AKS with kubelogin
+    - name: Setup AKS with kubelogin
+      uses: ./.github/actions/aks-kubelogin
       with:
         resource-group: ${{ env.AKS_RESOURCE_GROUP }}
         cluster-name: ${{ env.AKS_CLUSTER_NAME }}
@@ -76,10 +69,18 @@ jobs:
         ACR_NAME: ${{ env.ACR_NAME }}
         IMAGE_TAG: ${{ github.sha }}
     
-    # Deploy to AKS using k8s-deploy action
+    # Deploy to AKS using kubectl-action
     - name: Deploy to AKS
-      uses: Azure/k8s-deploy@v4
+      uses: actions-hub/kubectl@master
       with:
-        namespace: default
-        manifests: processed-deployment.yaml
-        action: deploy
+        args: apply -f processed-deployment.yaml
+      env:
+        KUBE_CONFIG: ${{ env.KUBECONFIG }}
+    
+    # Check rollout status
+    - name: Check rollout status
+      uses: actions-hub/kubectl@master
+      with:
+        args: rollout status deployment/sensor-producer
+      env:
+        KUBE_CONFIG: ${{ env.KUBECONFIG }}

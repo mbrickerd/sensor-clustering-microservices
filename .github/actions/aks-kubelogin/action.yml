@@ -1,0 +1,38 @@
+name: "AKS Kubelogin Setup"
+description: "Sets up AKS credentials and configures kubelogin"
+inputs:
+  resource-group:
+    description: "Resource group containing the AKS cluster"
+    required: true
+  cluster-name:
+    description: "Name of the AKS cluster"
+    required: true
+  kubelogin-version:
+    description: "Version of kubelogin to install"
+    required: false
+    default: "latest"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install kubelogin
+      uses: azure/use-kubelogin@v1
+      with:
+        kubelogin-version: ${{ inputs.kubelogin-version }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: "latest"
+
+    - name: Set AKS context
+      uses: azure/aks-set-context@v3
+      with:
+        resource-group: ${{ inputs.resource-group }}
+        cluster-name: ${{ inputs.cluster-name }}
+
+    - name: Configure kubelogin
+      shell: bash
+      run: kubelogin convert-kubeconfig -l azurecli
