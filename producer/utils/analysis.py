@@ -9,6 +9,7 @@ values when reference data is unavailable.
 """
 
 import polars as pl
+from io import StringIO
 from loguru import logger
 
 
@@ -148,7 +149,7 @@ def get_default_failure_patterns(
 
 
 def analyse_dataset(
-    data_file: str,
+    data_content: str,
     num_sensors: int = 20,
 ) -> tuple[dict[str, dict[str, float]], dict[float, dict[str, dict[str, float]]]]:
     """
@@ -159,7 +160,7 @@ def analyse_dataset(
     file cannot be loaded or analysed, falls back to default values.
 
     Args:
-        data_file (`str`): Path to the CSV data file
+        data_content (`str`): Content of the CSV data file
         num_sensors (`int`): Number of sensors expected in the data
 
     Returns:
@@ -167,8 +168,9 @@ def analyse_dataset(
             where sensor_stats is a dictionary of normal sensor statistics and
             failure_patterns is a dictionary of sensor behaviors during failures
     """
-    try:
-        df = pl.read_csv(data_file)
+    try: 
+        buffer = StringIO(data_content)
+        df = pl.read_csv(buffer)
         logger.info(f"Loaded dataset with {df.height} rows")
 
         sensor_stats = calculate_sensor_statistics(df)
