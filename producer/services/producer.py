@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Any, cast
 from uuid import uuid4
 
-from azure.eventhub import EventData, EventHubProducerClient
+from azure.eventhub import EventData, EventHubProducerClient, TransportType
 from azure.identity import DefaultAzureCredential
 from loguru import logger
 
@@ -96,6 +96,9 @@ class SensorDataProducer:
             self.producer_client = EventHubProducerClient.from_connection_string(
                 conn_str=config.eventhub_connection_string,
                 eventhub_name=config.eventhub_name,
+                retry_total=10,
+                retry_backoff_factor=0.5,
+                retry_mode='exponential'
             )
 
         else:
