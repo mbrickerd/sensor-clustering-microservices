@@ -232,20 +232,15 @@ class SensorDataProducer:
     def produce_messages(self) -> None:
         """
         Continuously produce and publish sensor messages to Azure Event Hubs.
-
-        Enters a loop that simulates sensor readings, formats them into
-        messages, and publishes them to the configured Event Hub. The
-        loop continues until interrupted by a keyboard interrupt or an
-        exception occurs. Handles cleanup of Event Hubs producer resources
-        upon exit.
-
-        Returns:
-            `None`
         """
         try:
+            logger.info("Starting produce_messages loop")
             while True:
                 start_time = time.time()
+                logger.debug("Updating sensor values")
                 sensor_data = self.update_sensor_values()
+                logger.debug(f"Sensor values updated, has_failure={sensor_data['has_failure']}")
+                
                 sensor_reading = SensorReading(
                     readings=sensor_data["readings"],
                     has_failure=sensor_data["has_failure"],
@@ -256,36 +251,52 @@ class SensorDataProducer:
                     timestamp=datetime.now().isoformat(),
                     readings=sensor_reading,
                 )
-
+                
+                logger.debug("Preparing to create EventHub batch")
                 try:
+                    logger.debug("Creating event data batch")
                     event_data_batch = self.producer_client.create_batch()
-                    serialized_message = json.dumps(message.model_dump()).encode(
-                        "utf-8"
-                    )
+                    logger.debug("Batch created successfully")
+                    
+                    serialized_message = json.dumps(message.model_dump()).encode("utf-8")
+                    logger.debug(f"Message serialized, size={len(serialized_message)} bytes")
+                    
+                    logger.debug("Adding event to batch")
                     event_data_batch.add(EventData(serialized_message))
+                    logger.debug("Event added to batch successfully")
 
+                    logger.debug("Sending batch to Event Hub")
                     self.producer_client.send_batch(event_data_batch)
+                    logger.debug("Batch sent successfully")
 
                     if self.health_service:
                         self.health_service.increment_messages_sent()
                         processing_time = time.time() - start_time
                         self.health_service.observe_processing_time(processing_time)
+                        logger.debug(f"Processing time observed: {processing_time:.4f}s")
 
                 except Exception as err:
                     logger.error(f"Error sending message: {str(err)}")
+                    logger.exception("Detailed exception information:")
                     if self.health_service:
                         self.health_service.increment_message_errors()
 
                 if sensor_data["has_failure"]:
                     logger.debug("Sent message with failure indication")
 
-                time.sleep(config.simulation_interval_ms / 1000)
+                sleep_time = config.simulation_interval_ms / 1000
+                logger.debug(f"Sleeping for {sleep_time} seconds")
+                time.sleep(sleep_time)
+                logger.debug("Woke up from sleep, starting next iteration")
 
         except KeyboardInterrupt:
             logger.info("Producer stopped by user")
 
         except Exception as err:
             logger.error(f"Error in producer: {str(err)}")
+            logger.exception("Detailed exception information:")
 
         finally:
+            logger.info("Closing producer client")
             self.producer_client.close()
+            logger.info("Producer client closed")
