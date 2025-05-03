@@ -91,14 +91,17 @@ class SensorDataProducer:
 
         except Exception as err:
             logger.error(f"Failed to read or analyse data file: {err}")
-
+            
         if config.eventhub_connection_string:
             self.producer_client = EventHubProducerClient.from_connection_string(
                 conn_str=config.eventhub_connection_string,
                 eventhub_name=config.eventhub_name,
-                retry_total=10,
+                auth_timeout=30.0,
+                retry_total=3,
                 retry_backoff_factor=0.5,
-                retry_mode='exponential'
+                retry_mode='exponential',
+                # uamqp_transport=True,
+                transport_type=TransportType.AmqpOverWebsocket,
             )
 
         else:
